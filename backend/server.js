@@ -5,8 +5,13 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = 3000;
 
+const path = require('path');
+
 app.use(cors());
 app.use(bodyParser.json());
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../kids-den-school')));
 
 // In-memory data store for demo
 const users = [
