@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kids Den School - Teacher Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary-blue: #0057B7;
+      --accent-yellow: #FFDD00;
+      --dark-gray: #434343;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      color: var(--dark-gray);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="bg-primary-blue text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-semibold">Kids Den School - Teacher Dashboard</h1>
+    <nav>
+      <a href="index.html" class="hover:underline"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+  </header>
+
+  <main class="flex-grow p-6 space-y-8">
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Attendance Tracking</h2>
+      <div class="bg-white rounded-lg shadow p-4">
+        <form>
+          <label for="classSelect" class="block font-medium mb-2">Select Class</label>
+          <select id="classSelect" class="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            <option>Class 1</option>
+            <option>Class 2</option>
+            <option>Class 3</option>
+          </select>
+          <table class="w-full border-collapse border border-gray-300">
+            <thead class="bg-primary-blue text-white">
+              <tr>
+                <th class="border border-gray-300 p-2 text-left">Student</th>
+                <th class="border border-gray-300 p-2 text-center">Present</th>
+                <th class="border border-gray-300 p-2 text-center">Absent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-gray-300 p-2">Student A</td>
+                <td class="border border-gray-300 p-2 text-center">
+                  <input type="radio" name="attendance1" />
+                </td>
+                <td class="border border-gray-300 p-2 text-center">
+                  <input type="radio" name="attendance1" />
+                </td>
+              </tr>
+              <tr>
+                <td class="border border-gray-300 p-2">Student B</td>
+                <td class="border border-gray-300 p-2 text-center">
+                  <input type="radio" name="attendance2" />
+                </td>
+                <td class="border border-gray-300 p-2 text-center">
+                  <input type="radio" name="attendance2" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <button type="submit" class="mt-4 bg-primary-blue text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Save Attendance</button>
+        </form>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Performance Assessment</h2>
+      <div class="bg-white rounded-lg shadow p-4">
+        <form>
+          <label for="studentSelect" class="block font-medium mb-2">Select Student</label>
+          <select id="studentSelect" class="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+            <option>Student A</option>
+            <option>Student B</option>
+          </select>
+          <label for="termMarks" class="block font-medium mb-2">Marks (Term 1, Term 2, Term 3, Periodic Tests)</label>
+          <input type="text" id="termMarks" placeholder="e.g. 85, 90, 88, 92" class="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+          <label for="feedback" class="block font-medium mb-2">Performance Feedback</label>
+          <textarea id="feedback" rows="4" class="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="Enter feedback here..."></textarea>
+          <button type="submit" class="bg-primary-blue text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Save Performance</button>
+        </form>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Attendance Reports</h2>
+      <div class="bg-white rounded-lg shadow p-4">
+        <button class="bg-primary-blue text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">Generate Report</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-gray-100 text-center p-4 text-sm text-gray-500">
+    &copy; 2024 Kids Den School. All rights reserved.
+  </footer>
+
+  <script>
+    let selectedClass = null;
+    let studentsList = [];
+
+    async function fetchClasses() {
+      try {
+        const response = await fetch('http://localhost:3000/api/teacher/classes', {
+          headers: { 'X-Username': 'teacher1' }
+        });
+        if (!response.ok) throw new Error('Failed to fetch classes');
+        const classes = await response.json();
+        const classSelect = document.getElementById('classSelect');
+        classSelect.innerHTML = '';
+        classes.forEach(cls => {
+          const option = document.createElement('option');
+          option.value = cls;
+          option.textContent = cls;
+          classSelect.appendChild(option);
+        });
+        if (classes.length > 0) {
+          selectedClass = classes[0];
+          classSelect.value = selectedClass;
+          fetchStudents(selectedClass);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function fetchStudents(classId) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/teacher/students/${classId}`, {
+          headers: { 'X-Username': 'teacher1' }
+        });
+        if (!response.ok) throw new Error('Failed to fetch students');
+        studentsList = await response.json();
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = '';
+        studentsList.forEach((student, index) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="border border-gray-300 p-2">${student.name}</td>
+            <td class="border border-gray-300 p-2 text-center"><input type="radio" name="attendance${index}" value="present" /></td>
+            <td class="border border-gray-300 p-2 text-center"><input type="radio" name="attendance${index}" value="absent" /></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    document.getElementById('classSelect').addEventListener('change', (e) => {
+      selectedClass = e.target.value;
+      fetchStudents(selectedClass);
+    });
+
+    document.querySelector('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      // Attendance submission
+      try {
+        const date = new Date().toISOString().split('T')[0];
+        for (let i = 0; i < studentsList.length; i++) {
+          const student = studentsList[i];
+          const radios = document.getElementsByName('attendance' + i);
+          let status = null;
+          for (const radio of radios) {
+            if (radio.checked) {
+              status = radio.value;
+              break;
+            }
+          }
+          if (status) {
+            await fetch('http://localhost:3000/api/teacher/attendance', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Username': 'teacher1'
+              },
+              body: JSON.stringify({
+                studentId: student.id,
+                classId: selectedClass,
+                date,
+                status
+              })
+            });
+          }
+        }
+        alert('Attendance saved successfully');
+      } catch (error) {
+        console.error(error);
+        alert('Failed to save attendance');
+      }
+    });
+
+    // Performance form submission
+    document.querySelector('form:nth-of-type(2)').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const studentId = parseInt(document.getElementById('studentSelect').value);
+        const marks = document.getElementById('termMarks').value.split(',').map(s => s.trim());
+        const feedback = document.getElementById('feedback').value;
+
+        const body = {
+          studentId,
+          term1: marks[0] ? parseInt(marks[0]) : undefined,
+          term2: marks[1] ? parseInt(marks[1]) : undefined,
+          term3: marks[2] ? parseInt(marks[2]) : undefined,
+          periodicTests: marks[3] ? parseInt(marks[3]) : undefined,
+          feedback
+        };
+
+        const response = await fetch('http://localhost:3000/api/teacher/performance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Username': 'teacher1'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save performance');
+        }
+
+        alert('Performance saved successfully');
+      } catch (error) {
+        console.error(error);
+        alert('Failed to save performance');
+      }
+    });
+
+    // Populate student select for performance form
+    async function populateStudentSelect() {
+      try {
+        if (!selectedClass) return;
+        const response = await fetch(`http://localhost:3000/api/teacher/students/${selectedClass}`, {
+          headers: { 'X-Username': 'teacher1' }
+        });
+        if (!response.ok) throw new Error('Failed to fetch students');
+        const students = await response.json();
+        const studentSelect = document.getElementById('studentSelect');
+        studentSelect.innerHTML = '';
+        students.forEach(student => {
+          const option = document.createElement('option');
+          option.value = student.id;
+          option.textContent = student.name;
+          studentSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    document.getElementById('classSelect').addEventListener('change', () => {
+      populateStudentSelect();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchClasses();
+      populateStudentSelect();
+    });
+
+  </script>
+</body>
+</html>
