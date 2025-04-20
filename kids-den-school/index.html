@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kids Den School - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary-blue: #0057B7;
+      --accent-yellow: #FFDD00;
+      --dark-gray: #434343;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      color: var(--dark-gray);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+  <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+    <h1 class="text-3xl font-semibold text-center mb-6" style="color: var(--primary-blue);">Kids Den School</h1>
+    <form id="loginForm" class="space-y-6">
+      <div>
+        <label for="username" class="block text-sm font-medium mb-1">Username</label>
+        <input type="text" id="username" name="username" required
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-medium mb-1">Password</label>
+        <input type="password" id="password" name="password" required
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+      </div>
+      <div>
+        <label for="role" class="block text-sm font-medium mb-1">Select Role</label>
+        <select id="role" name="role" required
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400">
+          <option value="" disabled selected>Select your role</option>
+          <option value="admin">Admin</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+        </select>
+      </div>
+      <button type="submit"
+        class="w-full bg-primary-blue text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition-colors">Login</button>
+    </form>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = loginForm.username.value;
+      const password = loginForm.password.value;
+      const role = loginForm.role.value;
+
+      try {
+        const response = await fetch('http://localhost:3000/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert('Login failed: ' + errorData.message);
+          return;
+        }
+
+        const data = await response.json();
+        if (data.user.role !== role) {
+          alert('Selected role does not match user role.');
+          return;
+        }
+
+        // Redirect based on role
+        if (role === 'admin') {
+          window.location.href = 'admin.html';
+        } else if (role === 'teacher') {
+          window.location.href = 'teacher.html';
+        } else if (role === 'student') {
+          window.location.href = 'student.html';
+        }
+      } catch (error) {
+        alert('Error connecting to server.');
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>
